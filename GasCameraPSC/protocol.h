@@ -22,4 +22,7 @@
 	// Прочитать период
 	uint16_t proto_get_period();
 	
+	// Задать период
+	void proto_set_period(uint16_t minutes);
+	
 #endif

@@ -12,10 +12,12 @@ static bool OutputState;
 static bool FirstPowerOn;
 static uint16_t PeriodMinutes;
 static uint32_t SleepTime;
+static uint32_t WakeTime;
 static uint8_t PscStatus;
 
 static void PowerOn(void)
 {
+	WakeTime = time_GetSeconds();
 	OutputState = true;
 	gp_Set(&OutputPin, true);
 	gp_Set(&I2CPullupPin, true);
@@ -24,6 +26,7 @@ static void PowerOn(void)
 static void PowerOff(void)
 {
 	OutputState = false;
+	SleepTime = time_GetSeconds();
 	gp_Set(&OutputPin, false);
 	gp_Set(&I2CPullupPin, false);
 }

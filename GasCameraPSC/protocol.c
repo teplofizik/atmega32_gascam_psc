@@ -11,6 +11,8 @@ void protocol_Init(void)
 	uint8_t i;
 	for(i = 0; i < MEM_SIZE; i++)
 		Registers[i] = 0;
+		
+	proto_set_period(10);
 }
 
 void on_i2c_write(uint8_t reg, uint8_t value)
@@ -71,4 +73,10 @@ uint8_t on_i2c_read(uint8_t reg)
 uint16_t proto_get_period(void)
 {
 	return Registers[REG_PERIOD] | ((uint16_t)Registers[REG_PERIOD + 1] << 8);
+}
+
+void proto_set_period(uint16_t minutes)
+{
+	Registers[REG_PERIOD] = minutes & 0xFF;
+	Registers[REG_PERIOD + 1] = (minutes >> 8) & 0xFF;
 }
