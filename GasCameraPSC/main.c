@@ -1,18 +1,13 @@
-/*
- * GasCameraPSC.c
- *
- * Created: 26.06.2026 23:51:43
- * Author : Professional
- */ 
-
-#include <avr/io.h>
-
+#include "drivers.h"
+#include "protocol.h"
 
 int main(void)
 {
-    /* Replace with your application code */
-    while (1) 
+	drivers_Init();
+	protocol_Init();
+
+    while(1)
     {
+
     }
 }
-
