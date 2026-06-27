@@ -17,6 +17,16 @@ void i2c_slave_Init(uint8_t address, TI2CWriteCallback write_cb, TI2CReadCallbac
 	TWCR = (1 << TWEA) | (1 << TWEN) | (1 << TWIE);
 }
 
+void i2c_slave_Enable(void)
+{
+	TWCR = (1 << TWEA) | (1 << TWEN) | (1 << TWIE);
+}
+
+void i2c_slave_Disable(void)
+{
+	TWCR = 0;
+}
+
 ISR(TWI_vect)
 {
 	uint8_t status = TWSR & 0xF8;

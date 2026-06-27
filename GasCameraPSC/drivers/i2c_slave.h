@@ -8,5 +8,7 @@
 	typedef uint8_t (*TI2CReadCallback)(uint8_t reg);
 
 	void i2c_slave_Init(uint8_t address, TI2CWriteCallback write_cb, TI2CReadCallback read_cb);
+	void i2c_slave_Enable(void);
+	void i2c_slave_Disable(void);
 
 #endif

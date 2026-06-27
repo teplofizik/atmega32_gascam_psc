@@ -1,5 +1,6 @@
 #include "psc.h"
 #include "../drivers/gpio.h"
+#include "../drivers/i2c_slave.h"
 #include "../drivers/voltmeter.h"
 #include "../drivers/time.h"
 #include "../config.h"
@@ -15,20 +16,35 @@ static uint32_t SleepTime;
 static uint32_t WakeTime;
 static uint8_t PscStatus;
 
+static void delay_ms(uint16_t ms)
+{
+	volatile uint16_t i, j;
+	for(i = 0; i < ms; i++)
+		for(j = 0; j < 500; j++);
+}
+
 static void PowerOn(void)
 {
+	gp_Set(&I2CPullupPin, true);
+	gp_Set(&OutputPin, true);
+
+	delay_ms(5);
+
+	i2c_slave_Enable();
+
 	WakeTime = time_GetSeconds();
 	OutputState = true;
-	gp_Set(&OutputPin, true);
-	gp_Set(&I2CPullupPin, true);
 }
 
 static void PowerOff(void)
 {
+	i2c_slave_Disable();
+
+	gp_Set(&I2CPullupPin, false);
+	gp_Set(&OutputPin, false);
+
 	OutputState = false;
 	SleepTime = time_GetSeconds();
-	gp_Set(&OutputPin, false);
-	gp_Set(&I2CPullupPin, false);
 }
 
 void psc_Init(void)
@@ -137,7 +153,7 @@ void psc_SetPeriod(uint16_t minutes)
 
 uint16_t psc_GetInputMillivolts(void)
 {
-	// Масштабируем в напряжение батареи
+	// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	uint32_t raw = voltmeter_GetMillivolts(PSC_INPUT_ADC_CH);
 
 	return raw * 4782 / 1024;
