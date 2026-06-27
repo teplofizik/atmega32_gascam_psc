@@ -3,6 +3,7 @@
 #include "psc/psc.h"
 
 #define  MEM_SIZE  32
+
 static uint8_t Registers[MEM_SIZE];
 
 void protocol_Init(void)
@@ -16,17 +17,33 @@ void on_i2c_write(uint8_t reg, uint8_t value)
 {
 	if(reg < MEM_SIZE)
 		Registers[reg] = value;
+
+	if(reg == REG_PERIOD)
+	{
+		uint16_t minutes = Registers[REG_PERIOD] | ((uint16_t)Registers[REG_PERIOD + 1] << 8);
+		psc_SetPeriod(minutes);
+	}
+	if(reg == REG_PERIOD + 1)
+	{
+		uint16_t minutes = Registers[REG_PERIOD] | ((uint16_t)Registers[REG_PERIOD + 1] << 8);
+		psc_SetPeriod(minutes);
+	}
 }
 
 uint8_t on_i2c_read(uint8_t reg)
 {
 	if(reg == REG_STATUS)
 	{
-		Registers[REG_STATUS] = psc_GetStatus();
+		uint8_t s = psc_GetStatus();
+
+		Registers[REG_STATUS] = s;
 		Registers[REG_STATUS + 1] = 0;
 
 		if(psc_GetOutput())
 			Registers[REG_STATUS + 1] |= 0x01;
+
+		if(psc_IsFirstPowerOn())
+			Registers[REG_STATUS + 1] |= 0x02;
 	}
 
 	if(reg == REG_VOLTAGE)

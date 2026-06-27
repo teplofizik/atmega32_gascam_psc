@@ -4,7 +4,7 @@
 #ifndef GPIO_H_
 #define GPIO_H_
 
-    typedef enum { PB = 1, PC = 2, PD = 3 } TPort;
+    typedef enum { PB = 0, PC = 1, PD = 2 } TPort;
 
     typedef struct
     {

@@ -1,11 +1,18 @@
 #include "voltmeter.h"
+#include "gpio.h"
+
 #include "../config.h"
 #include <avr/io.h>
+
+static const TPin Voltage = { PC, 0 };
 
 void voltmeter_Init(void)
 {
 	ADMUX = VREF_SELECT;
 	ADCSRA = (1 << ADEN) | ADC_PRESCALER;
+	DIDR0 = (1 << ADC0D);
+
+	gp_Input(&Voltage);
 }
 
 uint16_t voltmeter_GetMillivolts(uint8_t channel)
