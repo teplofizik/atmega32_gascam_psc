@@ -161,6 +161,12 @@
     <Compile Include="protocol.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="psc\psc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="psc\psc.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>

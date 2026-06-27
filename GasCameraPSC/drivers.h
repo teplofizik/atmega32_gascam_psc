@@ -7,6 +7,7 @@
 	#include "drivers/i2c_slave.h"
 	#include "drivers/time.h"
 	#include "drivers/voltmeter.h"
+	#include "psc/psc.h"
 
 	void drivers_Init(void);
 

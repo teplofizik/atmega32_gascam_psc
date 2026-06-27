@@ -7,4 +7,9 @@
 	#define VREF_MV     1100
 	#define ADC_PRESCALER ((1 << ADPS2) | (1 << ADPS0))
 
+	#define PSC_INPUT_ADC_CH   0
+	
+	#define PSC_OVP_THRESHOLD  6000
+	#define PSC_UVP_THRESHOLD  3000
+
 #endif

@@ -16,5 +16,7 @@ void drivers_Init(void)
 
 	time_Init();
 
+	psc_Init();
+
 	sei();
 }
