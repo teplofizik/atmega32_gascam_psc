@@ -3,4 +3,8 @@
 
 	#define I2C_ADDRESS 0x50
 
+	#define VREF_SELECT ((1 << REFS1) | (1 << REFS0))
+	#define VREF_MV     1100
+	#define ADC_PRESCALER ((1 << ADPS2) | (1 << ADPS0))
+
 #endif

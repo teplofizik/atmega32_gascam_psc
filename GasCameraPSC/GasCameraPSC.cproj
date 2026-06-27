@@ -149,6 +149,12 @@
     <Compile Include="drivers\time.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\voltmeter.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\voltmeter.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="protocol.h">
       <SubType>compile</SubType>
     </Compile>
