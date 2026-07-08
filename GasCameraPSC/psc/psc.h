@@ -22,7 +22,8 @@
 
 	bool psc_IsTriggered(void);
 	bool psc_IsFirstPowerOn(void);
-
+	
+	void psc_Command(uint8_t command);
 	void psc_SetPeriod(uint16_t minutes);
 
 	uint16_t psc_GetInputMillivolts(void);

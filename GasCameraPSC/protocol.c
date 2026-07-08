@@ -11,20 +11,28 @@ void protocol_Init(void)
 	uint8_t i;
 	for(i = 0; i < MEM_SIZE; i++)
 		Registers[i] = 0;
-		
+
 	proto_set_period(10);
 }
 
 void on_i2c_write(uint8_t reg, uint8_t value)
 {
+	if(reg == REG_COMMAND)
+	{
+		psc_Command(value);
+		return;
+	}
+	
 	if(reg < MEM_SIZE)
 		Registers[reg] = value;
+
 
 	if(reg == REG_PERIOD)
 	{
 		uint16_t minutes = Registers[REG_PERIOD] | ((uint16_t)Registers[REG_PERIOD + 1] << 8);
 		psc_SetPeriod(minutes);
 	}
+
 	if(reg == REG_PERIOD + 1)
 	{
 		uint16_t minutes = Registers[REG_PERIOD] | ((uint16_t)Registers[REG_PERIOD + 1] << 8);
@@ -34,36 +42,6 @@ void on_i2c_write(uint8_t reg, uint8_t value)
 
 uint8_t on_i2c_read(uint8_t reg)
 {
-	if(reg == REG_STATUS)
-	{
-		uint8_t s = psc_GetStatus();
-
-		Registers[REG_STATUS] = s;
-		Registers[REG_STATUS + 1] = 0;
-
-		if(psc_GetOutput())
-			Registers[REG_STATUS + 1] |= 0x01;
-
-		if(psc_IsFirstPowerOn())
-			Registers[REG_STATUS + 1] |= 0x02;
-	}
-
-	if(reg == REG_VOLTAGE)
-	{
-		uint16_t v = psc_GetInputMillivolts();
-		Registers[REG_VOLTAGE] = v & 0xFF;
-		Registers[REG_VOLTAGE + 1] = (v >> 8) & 0xFF;
-	}
-
-	if(reg == REG_TIME)
-	{
-		uint32_t s = time_GetSeconds();
-		Registers[REG_TIME + 0] = (uint8_t)(s & 0xFF);
-		Registers[REG_TIME + 1] = (uint8_t)((s >> 8) & 0xFF);
-		Registers[REG_TIME + 2] = (uint8_t)((s >> 16) & 0xFF);
-		Registers[REG_TIME + 3] = (uint8_t)((s >> 24) & 0xFF);
-	}
-
 	if(reg < MEM_SIZE)
 		return Registers[reg];
 
@@ -79,4 +57,38 @@ void proto_set_period(uint16_t minutes)
 {
 	Registers[REG_PERIOD] = minutes & 0xFF;
 	Registers[REG_PERIOD + 1] = (minutes >> 8) & 0xFF;
+}
+
+void protocol_Update(void)
+{
+	{
+		uint8_t s = psc_GetStatus();
+		Registers[REG_STATUS] = s;
+		Registers[REG_STATUS2] = 0;
+	}
+
+	{
+		uint8_t s2 = 0;
+		if(psc_GetOutput())
+		s2 |= 0x01;
+
+		if(psc_IsFirstPowerOn())
+		s2 |= 0x02;
+		
+		Registers[REG_STATUS2] = s2;
+	}
+	
+	{
+		uint16_t v = psc_GetInputMillivolts();
+		Registers[REG_VOLTAGE] = v & 0xFF;
+		Registers[REG_VOLTAGE + 1] = (v >> 8) & 0xFF;
+	}
+
+	{
+		uint32_t s = time_GetSeconds();
+		Registers[REG_TIME + 0] = (uint8_t)(s & 0xFF);
+		Registers[REG_TIME + 1] = (uint8_t)((s >> 8) & 0xFF);
+		Registers[REG_TIME + 2] = (uint8_t)((s >> 16) & 0xFF);
+		Registers[REG_TIME + 3] = (uint8_t)((s >> 24) & 0xFF);
+	}
 }

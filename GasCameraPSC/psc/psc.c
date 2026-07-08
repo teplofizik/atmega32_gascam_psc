@@ -9,12 +9,13 @@ static const TPin OutputPin  = { PD, 2 };
 static const TPin I2CPullupPin  = { PB, 0 };
 static const TPin TriggerPin = { PD, 5 };
 
-static bool OutputState;
-static bool FirstPowerOn;
-static uint16_t PeriodMinutes;
-static uint32_t SleepTime;
-static uint32_t WakeTime;
-static uint8_t PscStatus;
+static bool NeedSleep         = false;
+static bool OutputState       = true;
+static bool FirstPowerOn= true;
+static uint16_t PeriodMinutes = 10;
+static uint32_t SleepTime = 0;
+static uint32_t WakeTime = 0;
+static uint8_t PscStatus = 0;
 
 static void delay_ms(uint16_t ms)
 {
@@ -25,15 +26,15 @@ static void delay_ms(uint16_t ms)
 
 static void PowerOn(void)
 {
-	gp_Set(&I2CPullupPin, true);
 	gp_Set(&OutputPin, true);
 
 	delay_ms(5);
 
+	gp_Set(&I2CPullupPin, true);
 	i2c_slave_Enable();
 
-	WakeTime = time_GetSeconds();
 	OutputState = true;
+	WakeTime = time_GetSeconds();
 }
 
 static void PowerOff(void)
@@ -56,7 +57,6 @@ void psc_Init(void)
 	OutputState = false;
 
 	gp_Input(&TriggerPin);
-	gp_PullUp(&TriggerPin);
 
 	gp_Output(&I2CPullupPin);
 	gp_Low(&I2CPullupPin);
@@ -97,9 +97,15 @@ void psc_Main(void)
 	{
 		if(psc_IsTriggered())
 		{
-			PscStatus |= PSC_STATUS_SLEEPING;
-
-			PowerOff();
+			uint32_t now = time_GetSeconds();
+			
+			if(now - WakeTime > 2)
+			{
+				NeedSleep = false;
+				PscStatus |= PSC_STATUS_SLEEPING;
+			
+				PowerOff();
+			}
 		}
 	}
 	else
@@ -117,6 +123,14 @@ void psc_Main(void)
 				PowerOn();
 			}
 		}
+	}
+}
+
+void psc_Command(uint8_t command)
+{
+	if(command == 0x51)
+	{
+		NeedSleep = true;
 	}
 }
 
@@ -138,7 +152,7 @@ bool psc_GetOutput(void)
 
 bool psc_IsTriggered(void)
 {
-	return gp_Get(&TriggerPin) == false;
+	return gp_Get(&TriggerPin) == true;
 }
 
 bool psc_IsFirstPowerOn(void)
@@ -153,7 +167,6 @@ void psc_SetPeriod(uint16_t minutes)
 
 uint16_t psc_GetInputMillivolts(void)
 {
-	// ������������ � ���������� �������
 	uint32_t raw = voltmeter_GetMillivolts(PSC_INPUT_ADC_CH);
 
 	return raw * 4782 / 1024;

@@ -12,5 +12,6 @@ int main(void)
     while(1)
     {
 		psc_Main();
+		protocol_Update();
     }
 }
