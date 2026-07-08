@@ -1,16 +1,15 @@
 #include "i2c_slave.h"
+#include "../protocol.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-static TI2CWriteCallback i2c_write_cb = 0;
-static TI2CReadCallback i2c_read_cb = 0;
 static uint8_t reg_address = 0;
 static bool is_reg_set = false;
 
 void i2c_slave_Init(uint8_t address, TI2CWriteCallback write_cb, TI2CReadCallback read_cb)
 {
-	i2c_write_cb = write_cb;
-	i2c_read_cb = read_cb;
+	(void)write_cb;
+	(void)read_cb;
 
 	TWAR = address << 1;
 
@@ -19,6 +18,7 @@ void i2c_slave_Init(uint8_t address, TI2CWriteCallback write_cb, TI2CReadCallbac
 
 void i2c_slave_Enable(void)
 {
+	TWSR = 0;
 	TWCR = (1 << TWINT) | (1 << TWEA) | (1 << TWEN) | (1 << TWIE);
 }
 
@@ -39,36 +39,33 @@ ISR(TWI_vect)
 		case 0x70:
 		case 0x78:
 			is_reg_set = false;
+			(void)TWDR;
 			TWCR = (1 << TWEA) | (1 << TWEN) | (1 << TWIE) | (1 << TWINT);
 			break;
 
 		case 0x80:
-		{
-			uint8_t data = TWDR;
 			if(!is_reg_set)
 			{
-				reg_address = data;
+				reg_address = TWDR;
 				is_reg_set = true;
 			}
 			else
 			{
-				if(i2c_write_cb)
-					i2c_write_cb(reg_address, data);
+				on_i2c_write(reg_address, TWDR);
 				reg_address++;
 			}
 			TWCR = (1 << TWEA) | (1 << TWEN) | (1 << TWIE) | (1 << TWINT);
 			break;
-		}
 
 		case 0xA8:
 		case 0xB0:
-			TWDR = i2c_read_cb ? i2c_read_cb(reg_address) : 0;
+			TWDR = on_i2c_read(reg_address);
 			reg_address++;
 			TWCR = (1 << TWEA) | (1 << TWEN) | (1 << TWIE) | (1 << TWINT);
 			break;
 
 		case 0xB8:
-			TWDR = i2c_read_cb ? i2c_read_cb(reg_address) : 0;
+			TWDR = on_i2c_read(reg_address);
 			reg_address++;
 			TWCR = (1 << TWEA) | (1 << TWEN) | (1 << TWIE) | (1 << TWINT);
 			break;
