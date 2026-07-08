@@ -19,11 +19,12 @@ void i2c_slave_Init(uint8_t address, TI2CWriteCallback write_cb, TI2CReadCallbac
 
 void i2c_slave_Enable(void)
 {
-	TWCR = (1 << TWEA) | (1 << TWEN) | (1 << TWIE);
+	TWCR = (1 << TWINT) | (1 << TWEA) | (1 << TWEN) | (1 << TWIE);
 }
 
 void i2c_slave_Disable(void)
 {
+	TWCR = (1 << TWINT);
 	TWCR = 0;
 }
 

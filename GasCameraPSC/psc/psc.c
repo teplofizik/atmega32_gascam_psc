@@ -95,7 +95,8 @@ void psc_Main(void)
 
 	if(OutputState)
 	{
-		if(psc_IsTriggered())
+		//if(psc_IsTriggered())
+		if(NeedSleep)
 		{
 			uint32_t now = time_GetSeconds();
 			
