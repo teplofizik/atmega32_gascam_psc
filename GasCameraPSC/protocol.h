@@ -5,14 +5,15 @@
 
 	typedef enum
 	{
-		REG_STATUS  = 0,  // Текущий статус
-		REG_STATUS2 = 1,  // Текущий статус
-		REG_PERIOD  = 2,  // Период пробуждения в минутах
-		REG_VOLTAGE = 4,  // Напряжение батареи
-		REG_COUNTER = 6,  // Количество пробуждений от батареи
-		REG_TIME    = 8,  // Время в секундах (примерно) от запуска
-		REG_COMMAND = 16, // 
-		REG_MEM     = 17  // Память для заметок ESP32
+		REG_STATUS  = 0,  // РўРµРєСѓС‰РёР№ СЃС‚Р°С‚СѓСЃ
+		REG_STATUS2 = 1,  // РўРµРєСѓС‰РёР№ СЃС‚Р°С‚СѓСЃ
+		REG_PERIOD  = 2,  // 2 Р±Р°Р№С‚Р°: РїРµСЂРёРѕРґ РїСЂРѕР±СѓР¶РґРµРЅРёСЏ (РјРёРЅ)
+		REG_VOLTAGE = 4,  // 2 Р±Р°Р№С‚Р°: РЅР°РїСЂСЏР¶РµРЅРёРµ РїРёС‚Р°РЅРёСЏ (РјР’)
+		REG_COUNTER = 6,
+		REG_TIME    = 8,  // 4 Р±Р°Р№С‚Р°: РІСЂРµРјСЏ СЂР°Р±РѕС‚С‹ РјРє (СЃРµРє)
+		REG_COMMAND = 16,
+		REG_TIMEOUT = 17, // 2 Р±Р°Р№С‚Р°: С‚Р°Р№РјР°СѓС‚ СЃРµСЃСЃРёРё (РјРёРЅ)
+		REG_RETRY   = 19, // 2 Р±Р°Р№С‚Р°: РІСЂРµРјСЏ РјРµР¶РґСѓ РїРѕРїС‹С‚РєР°РјРё (РјРёРЅ)
 	} enum_register;
 
 	void protocol_Init(void);
@@ -22,10 +23,13 @@
 
 	uint8_t on_i2c_read(uint8_t reg);
 
-	// Прочитать период
 	uint16_t proto_get_period();
-	
-	// Задать период
 	void proto_set_period(uint16_t minutes);
+
+	uint16_t proto_get_timeout();
+	void proto_set_timeout(uint16_t minutes);
+
+	uint16_t proto_get_retry();
+	void proto_set_retry(uint16_t minutes);
 	
 #endif

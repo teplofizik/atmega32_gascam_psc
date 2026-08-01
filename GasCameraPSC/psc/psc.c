@@ -11,11 +11,15 @@ static const TPin TriggerPin = { PD, 5 };
 
 static bool NeedSleep         = false;
 static bool OutputState       = true;
-static bool FirstPowerOn= true;
+static bool FirstPowerOn      = true;
+static bool TimeoutSleep      = false;
 static uint16_t PeriodMinutes = 10;
-static uint32_t SleepTime = 0;
-static uint32_t WakeTime = 0;
-static uint8_t PscStatus = 0;
+static uint16_t TimeoutMinutes = 5;
+static uint16_t RetryMinutes  = 0;
+static uint32_t SleepTime     = 0;
+static uint32_t SessionStart  = 0;
+static uint32_t WakeTime      = 0;
+static uint8_t PscStatus      = 0;
 
 static void delay_ms(uint16_t ms)
 {
@@ -34,7 +38,10 @@ static void PowerOn(void)
 	i2c_slave_Enable();
 
 	OutputState = true;
-	WakeTime = time_GetSeconds();
+	TimeoutSleep = false;
+	PscStatus &= ~PSC_STATUS_TIMEOUT;
+	SessionStart = time_GetSeconds();
+	WakeTime = SessionStart;
 }
 
 static void PowerOff(void)
@@ -53,8 +60,12 @@ void psc_Init(void)
 	PscStatus = PSC_STATUS_OK;
 	FirstPowerOn = false;
 	PeriodMinutes = 0;
+	TimeoutMinutes = 5;
+	RetryMinutes = 0;
 	SleepTime = 0;
+	SessionStart = 0;
 	OutputState = false;
+	TimeoutSleep = false;
 
 	gp_Input(&TriggerPin);
 
@@ -95,16 +106,25 @@ void psc_Main(void)
 
 	if(OutputState)
 	{
-		//if(psc_IsTriggered())
 		if(NeedSleep)
 		{
 			uint32_t now = time_GetSeconds();
-			
+
 			if(now - WakeTime > 2)
 			{
 				NeedSleep = false;
+				TimeoutSleep = false;
 				PscStatus |= PSC_STATUS_SLEEPING;
-			
+				PowerOff();
+			}
+		}
+		else if(TimeoutMinutes > 0)
+		{
+			uint32_t now = time_GetSeconds();
+			if(now - SessionStart >= (uint32_t)TimeoutMinutes * 60)
+			{
+				TimeoutSleep = true;
+				PscStatus |= PSC_STATUS_SLEEPING | PSC_STATUS_TIMEOUT;
 				PowerOff();
 			}
 		}
@@ -114,12 +134,19 @@ void psc_Main(void)
 		if(SleepTime != 0)
 		{
 			uint32_t now = time_GetSeconds();
-			uint32_t period = (uint32_t)PeriodMinutes * 60;
+			uint32_t interval;
+			int32_t  diff = now - SleepTime;
 
-			if(now - SleepTime >= period)
+			if(TimeoutSleep && RetryMinutes > 0)
+				interval = (uint32_t)RetryMinutes * 60;
+			else if(PeriodMinutes > 0)
+				interval = (uint32_t)PeriodMinutes * 60;
+			else
+				interval = 0;
+
+			if((interval > 0) && (diff >= interval))
 			{
 				PscStatus &= ~PSC_STATUS_SLEEPING;
-
 				SleepTime = 0;
 				PowerOn();
 			}
@@ -164,6 +191,16 @@ bool psc_IsFirstPowerOn(void)
 void psc_SetPeriod(uint16_t minutes)
 {
 	PeriodMinutes = minutes;
+}
+
+void psc_SetTimeout(uint16_t minutes)
+{
+	TimeoutMinutes = minutes;
+}
+
+void psc_SetRetry(uint16_t minutes)
+{
+	RetryMinutes = minutes;
 }
 
 uint16_t psc_GetInputMillivolts(void)

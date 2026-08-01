@@ -7,6 +7,8 @@ int main(void)
 	protocol_Init();
 	psc_Init();
 	psc_SetPeriod(proto_get_period());
+	psc_SetTimeout(proto_get_timeout());
+	psc_SetRetry(proto_get_retry());
 	psc_Start();
 
     while(1)

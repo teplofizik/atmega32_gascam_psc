@@ -13,6 +13,8 @@ void protocol_Init(void)
 		Registers[i] = 0;
 
 	proto_set_period(10);
+	proto_set_timeout(5);
+	proto_set_retry(0);
 }
 
 void on_i2c_write(uint8_t reg, uint8_t value)
@@ -22,21 +24,45 @@ void on_i2c_write(uint8_t reg, uint8_t value)
 		psc_Command(value);
 		return;
 	}
-	
+
 	if(reg < MEM_SIZE)
 		Registers[reg] = value;
 
 
 	if(reg == REG_PERIOD)
 	{
-		uint16_t minutes = Registers[REG_PERIOD] | ((uint16_t)Registers[REG_PERIOD + 1] << 8);
-		psc_SetPeriod(minutes);
+		//uint16_t minutes = Registers[REG_PERIOD] | ((uint16_t)Registers[REG_PERIOD + 1] << 8);
+		//psc_SetPeriod(minutes);
 	}
 
 	if(reg == REG_PERIOD + 1)
 	{
 		uint16_t minutes = Registers[REG_PERIOD] | ((uint16_t)Registers[REG_PERIOD + 1] << 8);
 		psc_SetPeriod(minutes);
+	}
+
+	if(reg == REG_TIMEOUT)
+	{
+		uint16_t t = Registers[REG_TIMEOUT] | ((uint16_t)Registers[REG_TIMEOUT + 1] << 8);
+		psc_SetTimeout(t);
+	}
+
+	if(reg == REG_TIMEOUT + 1)
+	{
+		uint16_t t = Registers[REG_TIMEOUT] | ((uint16_t)Registers[REG_TIMEOUT + 1] << 8);
+		psc_SetTimeout(t);
+	}
+
+	if(reg == REG_RETRY)
+	{
+		uint16_t r = Registers[REG_RETRY] | ((uint16_t)Registers[REG_RETRY + 1] << 8);
+		psc_SetRetry(r);
+	}
+
+	if(reg == REG_RETRY + 1)
+	{
+		uint16_t r = Registers[REG_RETRY] | ((uint16_t)Registers[REG_RETRY + 1] << 8);
+		psc_SetRetry(r);
 	}
 }
 
@@ -57,6 +83,28 @@ void proto_set_period(uint16_t minutes)
 {
 	Registers[REG_PERIOD] = minutes & 0xFF;
 	Registers[REG_PERIOD + 1] = (minutes >> 8) & 0xFF;
+}
+
+uint16_t proto_get_timeout(void)
+{
+	return Registers[REG_TIMEOUT] | ((uint16_t)Registers[REG_TIMEOUT + 1] << 8);
+}
+
+void proto_set_timeout(uint16_t minutes)
+{
+	Registers[REG_TIMEOUT] = minutes & 0xFF;
+	Registers[REG_TIMEOUT + 1] = (minutes >> 8) & 0xFF;
+}
+
+uint16_t proto_get_retry(void)
+{
+	return Registers[REG_RETRY] | ((uint16_t)Registers[REG_RETRY + 1] << 8);
+}
+
+void proto_set_retry(uint16_t minutes)
+{
+	Registers[REG_RETRY] = minutes & 0xFF;
+	Registers[REG_RETRY + 1] = (minutes >> 8) & 0xFF;
 }
 
 void protocol_Update(void)

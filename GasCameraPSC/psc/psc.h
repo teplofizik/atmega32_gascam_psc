@@ -10,6 +10,7 @@
 		PSC_STATUS_OVP         = 0x01,
 		PSC_STATUS_UVP         = 0x02,
 		PSC_STATUS_SLEEPING    = 0x04,
+		PSC_STATUS_TIMEOUT     = 0x08,
 		PSC_STATUS_FAULT       = 0x80,
 	} TPSCStatus;
 
@@ -25,6 +26,8 @@
 	
 	void psc_Command(uint8_t command);
 	void psc_SetPeriod(uint16_t minutes);
+	void psc_SetTimeout(uint16_t minutes);
+	void psc_SetRetry(uint16_t minutes);
 
 	uint16_t psc_GetInputMillivolts(void);
 	uint8_t psc_GetStatus(void);
