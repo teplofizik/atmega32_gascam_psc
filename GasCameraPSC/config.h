@@ -12,4 +12,10 @@
 	#define PSC_OVP_THRESHOLD  6000
 	#define PSC_UVP_THRESHOLD  3000
 
+	// Задержка включения выхода после старта (сек).
+	// 0 - включать сразу при запуске (как раньше).
+	#ifndef PSC_POWERON_DELAY
+	#define PSC_POWERON_DELAY 0
+	#endif
+
 #endif

@@ -1,16 +1,20 @@
 #include "protocol.h"
 #include "drivers/time.h"
 #include "psc/psc.h"
+#include <avr/io.h>
 
 #define  MEM_SIZE  32
 
 static uint8_t Registers[MEM_SIZE];
+static uint8_t ResetCause;
 
 void protocol_Init(void)
 {
 	uint8_t i;
 	for(i = 0; i < MEM_SIZE; i++)
 		Registers[i] = 0;
+
+	ResetCause = MCUSR;
 
 	proto_set_period(10);
 	proto_set_timeout(5);
@@ -109,6 +113,8 @@ void proto_set_retry(uint16_t minutes)
 
 void protocol_Update(void)
 {
+	Registers[REG_RESET] = ResetCause;
+
 	{
 		uint8_t s = psc_GetStatus();
 		Registers[REG_STATUS] = s;

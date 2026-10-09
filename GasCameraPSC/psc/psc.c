@@ -12,12 +12,14 @@ static const TPin TriggerPin = { PD, 5 };
 static bool NeedSleep         = false;
 static bool OutputState       = true;
 static bool FirstPowerOn      = true;
+static bool PowerOnDelay      = false;
 static bool TimeoutSleep      = false;
 static uint16_t PeriodMinutes = 10;
 static uint16_t TimeoutMinutes = 5;
 static uint16_t RetryMinutes  = 0;
 static uint32_t SleepTime     = 0;
 static uint32_t SessionStart  = 0;
+static uint32_t StartTime     = 0;
 static uint32_t WakeTime      = 0;
 static uint8_t PscStatus      = 0;
 
@@ -42,6 +44,7 @@ static void PowerOn(void)
 	PscStatus &= ~PSC_STATUS_TIMEOUT;
 	SessionStart = time_GetSeconds();
 	WakeTime = SessionStart;
+	PowerOnDelay = false;
 }
 
 static void PowerOff(void)
@@ -59,11 +62,13 @@ void psc_Init(void)
 {
 	PscStatus = PSC_STATUS_OK;
 	FirstPowerOn = false;
+	PowerOnDelay = false;
 	PeriodMinutes = 0;
 	TimeoutMinutes = 5;
 	RetryMinutes = 0;
 	SleepTime = 0;
 	SessionStart = 0;
+	StartTime = 0;
 	OutputState = false;
 	TimeoutSleep = false;
 
@@ -79,7 +84,18 @@ void psc_Start(void)
 {
 	FirstPowerOn = true;
 
+#if PSC_POWERON_DELAY > 0
+	// Выход (нагрузка) остаётся выключенным - это уже сделано в psc_Init().
+	// Саму шину I2C при этом оставляем рабочей: подтяжку и слейв отключать
+	// нельзя, иначе master не дождётся ответа до включения выхода.
+	gp_Set(&I2CPullupPin, true);
+	i2c_slave_Enable();
+
+	StartTime = time_GetSeconds();
+	PowerOnDelay = true;
+#else
 	PowerOn();
+#endif
 }
 
 void psc_Main(void)
@@ -131,7 +147,17 @@ void psc_Main(void)
 	}
 	else
 	{
-		if(SleepTime != 0)
+		if(PowerOnDelay)
+		{
+			uint32_t now = time_GetSeconds();
+
+			if(now - StartTime >= PSC_POWERON_DELAY)
+			{
+				PscStatus &= ~PSC_STATUS_SLEEPING;
+				PowerOn();
+			}
+		}
+		else if(SleepTime != 0)
 		{
 			uint32_t now = time_GetSeconds();
 			uint32_t interval;
